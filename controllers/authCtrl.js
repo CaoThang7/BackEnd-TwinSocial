@@ -5,8 +5,11 @@ const jwt = require('jsonwebtoken')
 const authCtrl = {
     register: async (req, res) => {
         try {
-            const { fullname, username, email, password, gender } = req.body
+            const { fullname, username, email, password } = req.body
             let newUserName = username.toLowerCase().replace(/ /g, '')
+
+            const user_fullname = await Users.findOne({ fullname })
+            if (user_fullname) return res.status(400).json({ msg: "This fullname already exists." })
 
             const user_name = await Users.findOne({ username: newUserName })
             if (user_name) return res.status(400).json({ msg: "This user name already exists." })
@@ -20,7 +23,7 @@ const authCtrl = {
             const passwordHash = await bcrypt.hash(password, 12)
 
             const newUser = new Users({
-                fullname, username: newUserName, email, password: passwordHash, gender
+                fullname, username: newUserName, email, password: passwordHash
             })
 
 
