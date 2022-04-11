@@ -37,8 +37,8 @@ const userSchema = new mongoose.Schema({
         default: 'male',
     },
     birthday: {
-        type: Date,
-        default: Date.now,
+        type: String,
+        default: Date.now(),
     },
     mobile: {
         type: String,
