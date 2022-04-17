@@ -1,4 +1,3 @@
-const Users = require("../models/userModel")
 const jwt = require('jsonwebtoken')
 
 const auth = async (req, res, next) => {
@@ -23,9 +22,9 @@ const auth = async (req, res, next) => {
                 status: false,
                 msg: "Token is not provided",
             });
-        }      
+        }
     } catch (err) {
-        return res.status(500).json({msg: err.message});
+        return res.status(500).json({ msg: err.message });
     }
 }
 

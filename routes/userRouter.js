@@ -6,6 +6,8 @@ router.get('/search', auth, userCtrl.searchUser)
 
 router.get('/user/:id', auth, userCtrl.getUser)
 
+router.get('/getProfile', auth, userCtrl.getProfile)
+
 router.patch('/user', auth, userCtrl.updateUser)
 
 router.patch('/user/:id/follow', auth, userCtrl.follow)
