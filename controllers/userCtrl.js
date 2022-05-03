@@ -1,6 +1,6 @@
 const auth = require('../middleware/auth')
 const Users = require('../models/userModel')
-
+const cloudinary = require('../helper/ImageUpload');
 const userCtrl = {
     searchUser: async (req, res) => {
         try {
@@ -36,11 +36,11 @@ const userCtrl = {
     },
     updateUser: async (req, res) => {
         try {
-            const { avatar, fullname, mobile, address, story, website, gender } = req.body
+            const { fullname, username, avatar, gender, birthday } = req.body
             if (!fullname) return res.status(400).json({ msg: "Please add your full name." })
 
-            await Users.findOneAndUpdate({ _id: req.user._id }, {
-                avatar, fullname, mobile, address, story, website, gender
+            await Users.findOneAndUpdate({ id: req.decoded.id }, {
+                fullname, username, avatar, gender, birthday
             })
 
             res.json({ msg: "Update Success!" })
@@ -107,6 +107,33 @@ const userCtrl = {
             return res.status(500).json({ msg: err.message })
         }
     },
+    uploadProfile: async (req, res) => {
+        const user = await Users.findOne({ id: req.decoded.id })
+        if (!user) return res.status(400).json({ msg: "User does not exist." })
+
+        try {
+            const result = await cloudinary.uploader.upload(req.file.path, {
+                public_id: `${user._id}_profile`,
+                width: 500,
+                height: 500,
+                crop: 'fill',
+            });
+
+            const updatedUser = await Users.findByIdAndUpdate(
+                user._id,
+                { avatar: result.url },
+                { new: true }
+            );
+            res
+                .status(201)
+                .json({ success: true, message: 'Your profile has updated!' });
+        } catch (error) {
+            res
+                .status(500)
+                .json({ success: false, message: 'server error, try after some time' });
+            console.log('Error while uploading profile image', error.message);
+        }
+    }
 }
 
 
