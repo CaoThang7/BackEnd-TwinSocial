@@ -24,16 +24,6 @@ const userCtrl = {
             return res.status(500).json({ msg: err.message })
         }
     },
-    getProfile: async (req, res) => {
-        try {
-            const user = await Users.findOne({ id: req.decoded.id })
-            if (!user) return res.status(400).json({ msg: "User does not exist." })
-            res.json({ user })
-            console.log(user)
-        } catch (err) {
-            return res.status(500).json({ msg: err.message })
-        }
-    },
     updateUser: async (req, res) => {
         try {
             const { fullname, username, avatar, gender, birthday } = req.body
