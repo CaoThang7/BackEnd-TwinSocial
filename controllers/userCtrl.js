@@ -5,7 +5,7 @@ const userCtrl = {
     searchUser: async (req, res) => {
         try {
             const users = await Users.find({ username: { $regex: req.query.username } })
-                .limit(10).select("fullname username avatar")
+                .limit(10).select("fullname username avatar").populate("followers following", "-password")
 
             res.json({ users })
         } catch (err) {
@@ -41,18 +41,26 @@ const userCtrl = {
     },
     follow: async (req, res) => {
         try {
-            const user = await Users.find({ _id: req.params.id, followers: req.user._id })
-            if (user.length > 0) return res.status(500).json({ msg: "You followed this user." })
-
-            const newUser = await Users.findOneAndUpdate({ _id: req.params.id }, {
-                $push: { followers: req.user._id }
-            }, { new: true }).populate("followers following", "-password")
-
-            await Users.findOneAndUpdate({ _id: req.user._id }, {
-                $push: { following: req.params.id }
-            }, { new: true })
-
-            res.json({ newUser })
+            if (req.body.userId !== req.params.id) {
+                try {
+                    const user = await Users.findById(req.params.id);
+                    const currentUser = await Users.findById(req.body.userId);
+                    if (!user.followers.includes(req.body.userId)) {
+                        await user.updateOne({ $push: { followers: req.body.userId } });
+                        await currentUser.updateOne({ $push: { following: req.params.id } });
+                        // res.status(200).json("user has been followed");
+                        res.json({ msg: "user has been followed" })
+                    } else {
+                        // res.status(403).json("you allready follow this user");
+                        res.json({ msg: "you allready follow this user!" })
+                    }
+                } catch (err) {
+                    res.status(500).json(err);
+                }
+            } else {
+                // res.status(403).json("you cant follow yourself");
+                res.json({ msg: "you cant follow yourself" })
+            }
 
         } catch (err) {
             return res.status(500).json({ msg: err.message })
@@ -60,16 +68,26 @@ const userCtrl = {
     },
     unfollow: async (req, res) => {
         try {
-
-            const newUser = await Users.findOneAndUpdate({ _id: req.params.id }, {
-                $pull: { followers: req.user._id }
-            }, { new: true }).populate("followers following", "-password")
-
-            await Users.findOneAndUpdate({ _id: req.user._id }, {
-                $pull: { following: req.params.id }
-            }, { new: true })
-
-            res.json({ newUser })
+            if (req.body.userId !== req.params.id) {
+                try {
+                    const user = await Users.findById(req.params.id);
+                    const currentUser = await Users.findById(req.body.userId);
+                    if (user.followers.includes(req.body.userId)) {
+                        await user.updateOne({ $pull: { followers: req.body.userId } });
+                        await currentUser.updateOne({ $pull: { following: req.params.id } });
+                        // res.status(200).json("user has been unfollowed");
+                        res.json({ msg: "user has been unfollowed" })
+                    } else {
+                        // res.status(403).json("you dont follow this user");
+                        res.json({ msg: "you dont follow this user" })
+                    }
+                } catch (err) {
+                    res.status(500).json(err);
+                }
+            } else {
+                // res.status(403).json("you cant unfollow yourself");
+                res.json({ msg: "you cant unfollow yourself" })
+            }
 
         } catch (err) {
             return res.status(500).json({ msg: err.message })
