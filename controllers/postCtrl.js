@@ -1,4 +1,5 @@
 const Posts = require('../models/postModel')
+
 const postCtrl = {
     createPost: async (req, res) => {
         try {
@@ -19,6 +20,19 @@ const postCtrl = {
                     user: req.user
                 }
             })
+        } catch (err) {
+            return res.status(500).json({ msg: err.message })
+        }
+    },
+    getPosts: async (req, res) => {
+        try {
+            const post = await Posts.find().populate("userId").sort('-createdAt')
+            if (!post) {
+                res.status(500).json({
+                    success: false,
+                });
+            }
+            res.status(200).send(post);
         } catch (err) {
             return res.status(500).json({ msg: err.message })
         }
