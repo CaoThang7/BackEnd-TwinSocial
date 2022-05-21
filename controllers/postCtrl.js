@@ -37,6 +37,25 @@ const postCtrl = {
             return res.status(500).json({ msg: err.message })
         }
     },
+    updatePost: async (req, res) => {
+        try {
+            const { content, images } = req.body
+
+            const post = await Posts.findOneAndUpdate({ id: req.params.id }, {
+                content, images
+            }).populate("userId", "avatar username fullname")
+
+            res.json({
+                msg: "Updated Post!",
+                newPost: {
+                    ...post._doc,
+                    content, images
+                }
+            })
+        } catch (err) {
+            return res.status(500).json({ msg: err.message })
+        }
+    },
 }
 
 module.exports = postCtrl
