@@ -59,11 +59,21 @@ const postCtrl = {
             const post = await Posts.findById(req.params.id);
             if (!post.likes.includes(req.body.userId)) {
                 await post.updateOne({ $push: { likes: req.body.userId } });
-                //   res.status(200).json("The post has been liked");
                 res.json({ msg: "The post has been liked" })
             }
         } catch (err) {
             res.status(500).json(err);
+        }
+    },
+    unLikePost: async (req, res) => {
+        try {
+            const post = await Posts.findById(req.params.id);
+            if (post.likes.includes(req.body.userId)) {
+                await post.updateOne({ $pull: { likes: req.body.userId } });
+                res.json({ msg: "The post has been disliked" })
+            }
+        } catch (err) {
+            return res.status(500).json({ msg: err.message })
         }
     },
 }
