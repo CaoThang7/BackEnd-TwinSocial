@@ -38,22 +38,32 @@ const postCtrl = {
         }
     },
     updatePost: async (req, res) => {
+        const { content, images } = req.body
+        const updatedPost = await Posts.findByIdAndUpdate(
+            req.params.id,
+            {
+                content,
+                images
+            },
+            { new: true }
+        );
+
+        if (!updatedPost) {
+            res.json({ msg: "the post cannot be updated!" })
+        }
+
+        res.json({ msg: "Updated Post!" })
+    },
+    likePost: async (req, res) => {
         try {
-            const { content, images } = req.body
-
-            const post = await Posts.findOneAndUpdate({ id: req.params.id }, {
-                content, images
-            }).populate("userId", "avatar username fullname")
-
-            res.json({
-                msg: "Updated Post!",
-                newPost: {
-                    ...post._doc,
-                    content, images
-                }
-            })
+            const post = await Posts.findById(req.params.id);
+            if (!post.likes.includes(req.body.userId)) {
+                await post.updateOne({ $push: { likes: req.body.userId } });
+                //   res.status(200).json("The post has been liked");
+                res.json({ msg: "The post has been liked" })
+            }
         } catch (err) {
-            return res.status(500).json({ msg: err.message })
+            res.status(500).json(err);
         }
     },
 }
